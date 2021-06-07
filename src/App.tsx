@@ -1,37 +1,57 @@
 import React from "react";
+import { observer } from "mobx-react";
+import { IPropsCell, IPropsGame } from "./interface";
 import "./App.css";
 
-function App() {
-  const COL = 6;
-  const ROW = 6;
+const App = observer(({ gameState }: { gameState: IPropsGame }) => {
+  React.useEffect(() => {
+    gameState.setMines();
+  }, [gameState]);
+
   return (
-    <div className="App w-full h-full relative flex flex-col justify-center items-center bg-white">
-      <RestartBtn />
+    <div className="app w-full h-full relative flex flex-col justify-center items-center bg-white">
+      <RestartBtn gameState={gameState} />
+      Timer {gameState.secondsPassed}
       <Board>
-        {Array(ROW)
-          .fill(0)
-          .map((x) => Array(COL).fill(0))
-          .map((Row) => Row.map((cellData) => <Cell />))}
+        {gameState.cells.map((cellRow, x) =>
+          cellRow.map((cell, y) => (
+            <Cell
+              key={`${x}-${y}`}
+              data={cell}
+              clickBlock={() => gameState.setMines()}
+            />
+          ))
+        )}
       </Board>
     </div>
   );
-}
-const RestartBtn = () => {
+});
+
+const RestartBtn = ({ gameState }: { gameState: IPropsGame }) => {
   return (
-    <div className="restart-btn mb-4 px-4 py-1 rounded-sm ring-1 ring-gray-300 bg-gray-100 cursor-pointer">
-      {" "}
+    <div
+      className="restart-btn mb-4 px-4 py-1 rounded-sm ring-1 ring-gray-300 bg-gray-100 cursor-pointer"
+      onClick={() => gameState.reset()}
+    >
       Restart
     </div>
   );
 };
+
 const Board = ({ children }: { children: React.ReactNode }) => {
   return (
     <div className="board grid grid-cols-6 grid-rows-6 gap-0">{children}</div>
   );
 };
-const Cell = () => {
-  const STATE = ["flag", "cover", "uncover"][Math.floor(Math.random() * 3)];
-  const TYPE = ["boom", "non-boom"][Math.floor(Math.random() * 3)];
+
+const Cell = ({
+  data,
+  clickBlock,
+}: {
+  data: IPropsCell;
+  clickBlock: Function;
+}) => {
+  const STATE = ["flag", "cover", "uncover"][2];
   return (
     <div
       className={`cell flex justify-center items-center ring-1 ring-gray-300 bg-white rounded-sm w-10 h-10 font-medium ${
@@ -39,13 +59,19 @@ const Cell = () => {
           ? "cursor-pointer"
           : "cursor-default"
       }`}
+      onClick={() => {
+        if (STATE === "uncover") {
+          console.log("on click");
+          clickBlock();
+        }
+      }}
     >
       {STATE === "cover"
         ? ""
         : STATE === "uncover"
-        ? TYPE === "boom"
+        ? data.isMine
           ? "💣"
-          : Math.floor(Math.random() * 8)
+          : data.nearbyMines
         : "🚩"}
     </div>
   );
