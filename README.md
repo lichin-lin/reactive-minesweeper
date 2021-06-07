@@ -44,3 +44,53 @@ You don’t have to ever use `eject`. The curated feature set is suitable for sm
 You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
 
 To learn React, check out the [React documentation](https://reactjs.org/).
+
+## TailwindCSS
+
+### 🚗 Install
+
+```
+#using Yarn
+
+yarn add tailwindcss@npm:@tailwindcss/postcss7-compat @tailwindcss/postcss7-compat postcss@^7 autoprefixer@^9 -D
+
+yarn add @craco/craco
+
+```
+
+Create a CRACO configuration file in your base directory, either manually or using the following command:
+
+```
+touch craco.config.js
+```
+
+Next, add tailwindcss and autoprefixer as PostCSS plugins to your CRACO config file:
+```
+// craco.config.js
+module.exports = {
+  style: {
+    postcss: {
+      plugins: [
+        require('tailwindcss'),
+        require('autoprefixer'),
+      ],
+    },
+  },
+}
+
+// package.json
+...
+  "start": "craco start",
+  "build": "craco build",
+  "test": "craco test",
+  "eject": "react-scripts eject"
+...
+```
+
+Create the default configurations scaffold:
+```
+npx tailwindcss-cli@latest init
+```
+
+### 📌 Including Tailwind in your CSS
+[Offical Doc](https://tailwindcss.com/docs/guides/create-react-app)
