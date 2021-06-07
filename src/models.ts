@@ -1,5 +1,5 @@
 import { makeAutoObservable, autorun, toJS } from "mobx";
-import { IPropsGame, IPropsCell } from "./interface";
+import { IPropsGame, IPropsCell, IPropsPoint } from "./interface";
 import { generateMine } from "./utils";
 
 export enum GameState {
@@ -24,24 +24,25 @@ export class Game implements IPropsGame {
   secondsPassed: number = 0;
 
   constructor(size: SIZE, level: DIFFICULTY) {
-    makeAutoObservable(this);
     this.cells = this.initBoard(size);
+    makeAutoObservable(this);
     autorun(() => console.log(toJS(this)));
   }
   initBoard(size: SIZE) {
     return Array(size)
       .fill(0)
-      .map((x) => Array(size).fill(0))
+      .map((y) => Array(size).fill(0))
       .map((Row) => Row.map((cell, id) => new Cell()));
   }
-  setMines() {
-    const mines = generateMine(SIZE.EASY, DIFFICULTY.EASY);
+  setMines(excluding: IPropsPoint[]) {
+    const mines = generateMine(SIZE.EASY, DIFFICULTY.EASY, excluding);
     mines.forEach((mine) => {
-      this.cells[mine[0]][mine[1]].isMine = true;
-      console.log(this.cells[mine[0]][mine[1]]);
+      const { x, y } = mine
+      this.cells[x][y].isMine = true;
     });
   }
-  cellAt(x: number, y: number): IPropsCell {
+  cellAt(point: IPropsPoint): IPropsCell {
+    const { x, y } = point;
     return this.cells[x][y];
   }
 

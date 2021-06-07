@@ -4,10 +4,6 @@ import { IPropsCell, IPropsGame } from "./interface";
 import "./App.css";
 
 const App = observer(({ gameState }: { gameState: IPropsGame }) => {
-  React.useEffect(() => {
-    gameState.setMines();
-  }, [gameState]);
-
   return (
     <div className="app w-full h-full relative flex flex-col justify-center items-center bg-white">
       <RestartBtn gameState={gameState} />
@@ -17,8 +13,11 @@ const App = observer(({ gameState }: { gameState: IPropsGame }) => {
           cellRow.map((cell, y) => (
             <Cell
               key={`${x}-${y}`}
-              data={cell}
-              clickBlock={() => gameState.setMines()}
+              data={{
+                isMine: cell.isMine,
+                nearbyMines: cell.nearbyMines,
+              }}
+              clickBlock={() => gameState.setMines([{ x, y }])}
             />
           ))
         )}
