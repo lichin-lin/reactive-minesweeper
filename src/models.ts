@@ -1,12 +1,13 @@
 import { makeAutoObservable, autorun, toJS } from "mobx";
-import { IPropsGame, IPropsCell, IPropsPoint } from "./interface";
+import {
+  IPropsGame,
+  IPropsCell,
+  IPropsPoint,
+  CellStatus,
+  GameStatus,
+} from "./interface";
 import { generateMine } from "./utils";
 
-export enum GameState {
-  PLAYING,
-  LOST,
-  WON,
-}
 export enum DIFFICULTY {
   EASY = 0.2,
   MEDIUM = 0.3,
@@ -26,7 +27,9 @@ export class Game implements IPropsGame {
   constructor(size: SIZE, level: DIFFICULTY) {
     this.cells = this.initBoard(size);
     makeAutoObservable(this);
-    autorun(() => console.log(toJS(this)));
+    autorun(() => {
+      console.log(toJS(this));
+    });
   }
   initBoard(size: SIZE) {
     return Array(size)
@@ -37,7 +40,7 @@ export class Game implements IPropsGame {
   setMines(excluding: IPropsPoint[]) {
     const mines = generateMine(SIZE.EASY, DIFFICULTY.EASY, excluding);
     mines.forEach((mine) => {
-      const { x, y } = mine
+      const { x, y } = mine;
       this.cells[x][y].isMine = true;
     });
   }
@@ -45,19 +48,48 @@ export class Game implements IPropsGame {
     const { x, y } = point;
     return this.cells[x][y];
   }
-
-  increase() {
-    this.secondsPassed += 1;
-  }
   reset() {
-    this.secondsPassed = 0;
     this.cells = this.initBoard(SIZE.EASY);
   }
+  get gameStatus() {
+    let _gameStatus = GameStatus.IDLE;
+    const allMines = this.cells.flat(1);
+    if (
+      // some reveal and isMine -> Lost
+      allMines.some((cell) => cell.isMine && cell.status === CellStatus.show)
+    ) {
+      _gameStatus = GameStatus.LOST;
+    } else if (
+      // other than bomb's mines all got reveal / flagged -> Win
+      allMines.filter(
+        (cell) =>
+          !cell.isMine &&
+          (cell.status === CellStatus.show ||
+            cell.status === CellStatus.flag)
+      ).length +
+        allMines.filter(
+          (cell) => cell.isMine && cell.status === CellStatus.hide
+        ).length ===
+      allMines.length
+    ) {
+      _gameStatus = GameStatus.WON;
+    } else if (
+      // fist one click, bomb set -> Playing
+      this.cells.flat(1).some((cell) => cell.isMine)
+    ) {
+      _gameStatus = GameStatus.PLAYING;
+    }
+    return _gameStatus;
+  }
+  // TODO: Reveal one, first phase => show 0, second phase => calculate nearbys
+  // TODO: Reveal recursivly
+  // TODO: flag & flag back
 }
 
 export class Cell implements IPropsCell {
+  status: CellStatus = CellStatus.hide;
   isMine: boolean = false;
-  nearbyMines: number | null = null;
+  nearbyMines: number | null = 0;
 
   constructor() {
     makeAutoObservable(this);

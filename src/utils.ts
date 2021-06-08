@@ -13,12 +13,10 @@ export const generateMine = (
     const x = Math.floor(Math.random() * size);
     const y = Math.floor(Math.random() * size);
     // try to put in a mine to the list
+    const hasMine = (newMine: IPropsPoint) => (existMine: IPropsPoint) =>
+      JSON.stringify(newMine) === JSON.stringify(existMine);
     const _mine = { x, y };
-    const hasMine = (mineArr: IPropsPoint[], newMine: IPropsPoint) =>
-      mineArr.some(
-        (existMine) => JSON.stringify(existMine) === JSON.stringify(newMine)
-      );
-    if (!hasMine(mineArray, _mine) && !hasMine(excluding, _mine)) {
+    if (!mineArray.find(hasMine(_mine)) && !excluding.find(hasMine(_mine))) {
       mineArray = [...mineArray, _mine];
     }
   }

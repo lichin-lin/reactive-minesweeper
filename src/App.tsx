@@ -1,13 +1,29 @@
 import React from "react";
 import { observer } from "mobx-react";
-import { IPropsCell, IPropsGame } from "./interface";
+import { IPropsCell, IPropsGame, CellStatus, GameStatus } from "./interface";
 import "./App.css";
 
 const App = observer(({ gameState }: { gameState: IPropsGame }) => {
+  const MapGameStatus = (gameStatus: GameStatus) => {
+    switch (gameStatus) {
+      case GameStatus.IDLE:
+        return "Ready for playing";
+      case GameStatus.PLAYING:
+        return "Playing...";
+      case GameStatus.LOST:
+        return "Oh, try again 😢";
+      case GameStatus.WON:
+        return "Congrats! ✨";
+      default:
+        break;
+    }
+  };
   return (
     <div className="app w-full h-full relative flex flex-col justify-center items-center bg-white">
       <RestartBtn gameState={gameState} />
-      Timer {gameState.secondsPassed}
+      <div className="gameStatus text-xs mb-2 font-bold">
+        {MapGameStatus(gameState.gameStatus)}
+      </div>
       <Board>
         {gameState.cells.map((cellRow, x) =>
           cellRow.map((cell, y) => (
@@ -16,6 +32,7 @@ const App = observer(({ gameState }: { gameState: IPropsGame }) => {
               data={{
                 isMine: cell.isMine,
                 nearbyMines: cell.nearbyMines,
+                status: cell.status,
               }}
               clickBlock={() => gameState.setMines([{ x, y }])}
             />
@@ -50,24 +67,24 @@ const Cell = ({
   data: IPropsCell;
   clickBlock: Function;
 }) => {
-  const STATE = ["flag", "cover", "uncover"][2];
+  const { status } = data;  
   return (
     <div
       className={`cell flex justify-center items-center ring-1 ring-gray-300 bg-white rounded-sm w-10 h-10 font-medium ${
-        STATE === "cover" || STATE === "flag"
+        status === CellStatus.hide || status === CellStatus.flag
           ? "cursor-pointer"
           : "cursor-default"
       }`}
       onClick={() => {
-        if (STATE === "uncover") {
+        if (status === CellStatus.hide) {
           console.log("on click");
           clickBlock();
         }
       }}
     >
-      {STATE === "cover"
+      {status === CellStatus.hide
         ? ""
-        : STATE === "uncover"
+        : status === CellStatus.show
         ? data.isMine
           ? "💣"
           : data.nearbyMines
