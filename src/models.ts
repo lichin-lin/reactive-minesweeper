@@ -28,7 +28,7 @@ export class Game implements IPropsGame {
     this.cells = this.initBoard(size);
     makeAutoObservable(this);
     autorun(() => {
-      console.log(toJS(this));
+      // console.log(toJS(this));
     });
   }
   initBoard(size: SIZE) {
@@ -61,10 +61,15 @@ export class Game implements IPropsGame {
     if (this.gameStatus === GameStatus.IDLE) {
       this.setMines([point]);
     }
+    if (
+      this.gameStatus === GameStatus.WON ||
+      this.gameStatus === GameStatus.LOST
+    ) {
+      return;
+    }
     const { x, y } = point;
     if (this.cells[x][y].status === CellStatus.hide) {
-      this.cells[x][y].status = CellStatus.show;
-      this.cells[x][y].nearbyMines = this.calculateNearbyMines({ x, y });
+      this.revealMineRecusivly(point);
     }
   }
   reset() {
@@ -80,47 +85,76 @@ export class Game implements IPropsGame {
       _gameStatus = GameStatus.LOST;
     } else if (
       // other than bomb's mines all got reveal / flagged -> Win
-      allMines.filter(
-        (cell) =>
-          !cell.isMine &&
-          (cell.status === CellStatus.show || cell.status === CellStatus.flag)
-      ).length +
-        allMines.filter(
-          (cell) => cell.isMine && cell.status === CellStatus.hide
-        ).length ===
-      allMines.length
+      allMines.filter((cell) => !cell.isMine && cell.status === CellStatus.show)
+        .length ===
+      allMines.length - allMines.filter((cell) => cell.isMine).length
     ) {
       _gameStatus = GameStatus.WON;
     } else if (
       // fist one click, bomb set -> Playing
-      this.cells.flat(1).some((cell) => cell.isMine)
+      allMines.some((cell) => cell.isMine)
     ) {
       _gameStatus = GameStatus.PLAYING;
     }
     return _gameStatus;
   }
   calculateNearbyMines(point: IPropsPoint) {
-    const { x, y } = point;
-    const nearbyMineCount = [
-      // upper row
-      this.cells?.[x - 1]?.[y - 1],
-      this.cells?.[x]?.[y - 1],
-      this.cells?.[x + 1]?.[y - 1],
-      // same row
-      this.cells?.[x - 1]?.[y],
-      this.cells?.[x + 1]?.[y],
-      // down row
-      this.cells?.[x - 1]?.[y + 1],
-      this.cells?.[x]?.[y + 1],
-      this.cells?.[x + 1]?.[y + 1],
-    ]
-      // TODO: remove outbound warning
-      .map((cell: IPropsCell) => cell?.isMine)
-      .filter(Boolean).length;
+    const nearbyMineCount = this.getNearbyCells(point).filter(
+      (cell: IPropsCell) => cell?.isMine
+    ).length;
     return nearbyMineCount;
   }
+  getNearbyCells(point: IPropsPoint) {
+    const { x, y } = point;
+    return (
+      [
+        // upper row
+        this.cells?.[x - 1]?.[y - 1],
+        this.cells?.[x]?.[y - 1],
+        this.cells?.[x + 1]?.[y - 1],
+        // same row
+        this.cells?.[x - 1]?.[y],
+        this.cells?.[x + 1]?.[y],
+        // down row
+        this.cells?.[x - 1]?.[y + 1],
+        this.cells?.[x]?.[y + 1],
+        this.cells?.[x + 1]?.[y + 1],
+      ]
+        .filter((Cell: Cell | undefined) => Cell !== undefined)
+    );
+  }
   // TODO: Reveal recursivly
-  // TODO: flag & flag back
+  revealMineRecusivly(point: IPropsPoint) {
+    const { x, y } = point;
+    if (this.cells[x][y].status === CellStatus.hide) {
+      const nearbyMinesCount = this.calculateNearbyMines(point);
+      this.cells[x][y].nearbyMines = nearbyMinesCount;
+      this.cells[x][y].status = CellStatus.show;
+      if (nearbyMinesCount === 0 && !this.cells[x][y].isMine) {
+        [
+          // upper row
+          [x - 1, y - 1],
+          [x, y - 1],
+          [x + 1, y - 1],
+          // same row
+          [x - 1, y],
+          [x + 1, y],
+          // down row
+          [x - 1, y + 1],
+          [x, y + 1],
+          [x + 1, y + 1],
+        ]
+          .filter(
+            (cellIndex) =>
+              this.cells?.[cellIndex[0]]?.[cellIndex[1]]?.status ===
+              CellStatus.hide
+          )
+          .forEach((cellIndex) =>
+            this.revealMineRecusivly({ x: cellIndex[0], y: cellIndex[1] })
+          );
+      }
+    }
+  }
 }
 
 export class Cell implements IPropsCell {

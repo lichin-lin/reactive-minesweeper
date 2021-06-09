@@ -2,6 +2,7 @@ import React from "react";
 import { observer } from "mobx-react";
 import { IPropsCell, IPropsGame, CellStatus, GameStatus } from "./interface";
 import "./App.css";
+import { SIZE } from "./models";
 
 const App = observer(({ gameState }: { gameState: IPropsGame }) => {
   const MapGameStatus = (gameStatus: GameStatus) => {
@@ -57,7 +58,7 @@ const RestartBtn = ({ gameState }: { gameState: IPropsGame }) => {
 
 const Board = ({ children }: { children: React.ReactNode }) => {
   return (
-    <div className="board grid grid-cols-6 grid-rows-6 gap-0">{children}</div>
+    <div className={`board grid grid-cols-${SIZE.EASY} grid-rows-${SIZE.EASY} gap-0`}>{children}</div>
   );
 };
 
