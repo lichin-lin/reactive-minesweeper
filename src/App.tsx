@@ -25,7 +25,7 @@ const App = observer(({ gameState }: { gameState: IPropsGame }) => {
       <div className="gameStatus text-xs mb-2 font-bold">
         {MapGameStatus(gameState.gameStatus)}
       </div>
-      <Board>
+      <Board size={gameState.size}>
         {gameState.cells.map((cellRow, x) =>
           cellRow.map((cell, y) => (
             <Cell
@@ -56,10 +56,14 @@ const RestartBtn = ({ gameState }: { gameState: IPropsGame }) => {
   );
 };
 
-const Board = ({ children }: { children: React.ReactNode }) => {
+const Board = ({ size, children }: { size: SIZE, children: React.ReactNode }) => {
   return (
     <div
-      className={`board grid grid-cols-${SIZE.EASY} grid-rows-${SIZE.EASY} gap-0`}
+      className={`board grid gap-0`}
+      style={{
+        gridTemplateColumns: `repeat(${size}, minmax(0, 1fr))`,
+        gridTemplateRows: `repeat(${size}, minmax(0, 1fr))`,
+      }}
     >
       {children}
     </div>

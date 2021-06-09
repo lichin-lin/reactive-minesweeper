@@ -12,10 +12,12 @@ import { generateMine } from "./utils";
 
 export class Game implements IPropsGame {
   cells: Array<Array<Cell>>;
+  size: SIZE;
   secondsPassed: number = 0;
 
   constructor(size: SIZE, level: DIFFICULTY) {
     this.cells = this.initBoard(size);
+    this.size = size;
     makeAutoObservable(this);
     autorun(() => {
       // console.log(toJS(this));
@@ -28,7 +30,7 @@ export class Game implements IPropsGame {
       .map((Row) => Row.map((cell, id) => new Cell()));
   }
   setMines(excluding: IPropsPoint[]) {
-    const mines = generateMine(SIZE.EASY, DIFFICULTY.EASY, excluding);
+    const mines = generateMine(this.size, DIFFICULTY.EASY, excluding);
     mines.forEach((mine) => {
       const { x, y } = mine;
       this.cells[x][y].isMine = true;
@@ -36,16 +38,10 @@ export class Game implements IPropsGame {
   }
   setCellFlag(point: IPropsPoint) {
     const { x, y } = point;
-    if (
-      this.cells[x][y].status === CellStatus.flag ||
-      this.cells[x][y].status === CellStatus.hide
-    ) {
+    const cellStatus = this.cells[x][y].status;
+    if (cellStatus === CellStatus.flag || cellStatus === CellStatus.hide) {
       this.cells[x][y].toggleFlag();
     }
-  }
-  cellAt(point: IPropsPoint): IPropsCell {
-    const { x, y } = point;
-    return this.cells[x][y];
   }
   revealMine(point: IPropsPoint) {
     if (this.gameStatus === GameStatus.IDLE) {
@@ -63,7 +59,7 @@ export class Game implements IPropsGame {
     }
   }
   reset() {
-    this.cells = this.initBoard(SIZE.EASY);
+    this.cells = this.initBoard(this.size);
   }
   get gameStatus() {
     let _gameStatus = GameStatus.IDLE;
@@ -81,8 +77,7 @@ export class Game implements IPropsGame {
     ) {
       _gameStatus = GameStatus.WON;
     } else if (
-      // fist one click, bomb set -> Playing
-      allMines.some((cell) => cell.isMine)
+      allMines.some((cell) => cell.isMine) // fist one click, bomb set -> Playing
     ) {
       _gameStatus = GameStatus.PLAYING;
     }
@@ -95,22 +90,10 @@ export class Game implements IPropsGame {
     return nearbyMineCount;
   }
   getNearbyCells(point: IPropsPoint) {
-    const { x, y } = point;
-    return [
-      // upper row
-      this.cells?.[x - 1]?.[y - 1],
-      this.cells?.[x]?.[y - 1],
-      this.cells?.[x + 1]?.[y - 1],
-      // same row
-      this.cells?.[x - 1]?.[y],
-      this.cells?.[x + 1]?.[y],
-      // down row
-      this.cells?.[x - 1]?.[y + 1],
-      this.cells?.[x]?.[y + 1],
-      this.cells?.[x + 1]?.[y + 1],
-    ].filter((Cell: Cell | undefined) => Cell !== undefined);
+    return this.cellsMatrix(point)
+      .map((cellIndex) => this.cells?.[cellIndex[0]]?.[cellIndex[1]])
+      .filter((Cell: IPropsCell) => Cell !== undefined);
   }
-  // TODO: Reveal recursivly
   revealMineRecusivly(point: IPropsPoint) {
     const { x, y } = point;
     if (this.cells[x][y].status === CellStatus.hide) {
@@ -118,19 +101,7 @@ export class Game implements IPropsGame {
       this.cells[x][y].nearbyMines = nearbyMinesCount;
       this.cells[x][y].status = CellStatus.show;
       if (nearbyMinesCount === 0 && !this.cells[x][y].isMine) {
-        [
-          // upper row
-          [x - 1, y - 1],
-          [x, y - 1],
-          [x + 1, y - 1],
-          // same row
-          [x - 1, y],
-          [x + 1, y],
-          // down row
-          [x - 1, y + 1],
-          [x, y + 1],
-          [x + 1, y + 1],
-        ]
+        this.cellsMatrix(point)
           .filter(
             (cellIndex) =>
               this.cells?.[cellIndex[0]]?.[cellIndex[1]]?.status ===
@@ -142,6 +113,22 @@ export class Game implements IPropsGame {
       }
     }
   }
+  cellsMatrix = (point: IPropsPoint) => {
+    const { x, y } = point;
+    return [
+      // upper row
+      [x - 1, y - 1],
+      [x, y - 1],
+      [x + 1, y - 1],
+      // same row
+      [x - 1, y],
+      [x + 1, y],
+      // down row
+      [x - 1, y + 1],
+      [x, y + 1],
+      [x + 1, y + 1],
+    ];
+  };
 }
 
 export class Cell implements IPropsCell {

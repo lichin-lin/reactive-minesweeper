@@ -19,12 +19,12 @@ export enum DIFFICULTY {
 export enum SIZE {
   EASY = 6,
   MEDIUM = 10,
-  HARD = 20,
+  HARD = 15,
 }
 export interface IPropsGame {
   // mine
   cells: Array<Array<IPropsCell>>;
-  cellAt: Function;
+  size: SIZE;
   setMines: (excluding: IPropsPoint[]) => void;
   revealMine: (point: IPropsPoint) => void;
   setCellFlag: (point: IPropsPoint) => void;
