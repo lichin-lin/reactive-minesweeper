@@ -34,7 +34,8 @@ const App = observer(({ gameState }: { gameState: IPropsGame }) => {
                 nearbyMines: cell.nearbyMines,
                 status: cell.status,
               }}
-              clickBlock={() => gameState.setMines([{ x, y }])}
+              leftClick={() => gameState.revealMine({ x, y })}
+              rightClick={() => gameState.setCellFlag({ x, y })}
             />
           ))
         )}
@@ -62,12 +63,24 @@ const Board = ({ children }: { children: React.ReactNode }) => {
 
 const Cell = ({
   data,
-  clickBlock,
+  leftClick,
+  rightClick,
 }: {
   data: IPropsCell;
-  clickBlock: Function;
+  leftClick: Function;
+  rightClick: Function;
 }) => {
-  const { status } = data;  
+  const { status } = data;
+  const handleClickEvent = (
+    event: React.MouseEvent<HTMLDivElement, MouseEvent>
+  ) => {
+    event.preventDefault();
+    if (event.type === "click") {
+      leftClick();
+    } else if (event.type === "contextmenu") {
+      rightClick();
+    }
+  };
   return (
     <div
       className={`cell flex justify-center items-center ring-1 ring-gray-300 bg-white rounded-sm w-10 h-10 font-medium ${
@@ -75,11 +88,11 @@ const Cell = ({
           ? "cursor-pointer"
           : "cursor-default"
       }`}
-      onClick={() => {
-        if (status === CellStatus.hide) {
-          console.log("on click");
-          clickBlock();
-        }
+      onContextMenu={(e) => {
+        handleClickEvent(e);
+      }}
+      onClick={(e) => {
+        handleClickEvent(e);
       }}
     >
       {status === CellStatus.hide

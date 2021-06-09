@@ -44,9 +44,28 @@ export class Game implements IPropsGame {
       this.cells[x][y].isMine = true;
     });
   }
+  setCellFlag(point: IPropsPoint) {
+    const { x, y } = point;
+    if (
+      this.cells[x][y].status === CellStatus.flag ||
+      this.cells[x][y].status === CellStatus.hide
+    ) {
+      this.cells[x][y].toggleFlag();
+    }
+  }
   cellAt(point: IPropsPoint): IPropsCell {
     const { x, y } = point;
     return this.cells[x][y];
+  }
+  revealMine(point: IPropsPoint) {
+    if (this.gameStatus === GameStatus.IDLE) {
+      this.setMines([point]);
+    }
+    const { x, y } = point;
+    if (this.cells[x][y].status === CellStatus.hide) {
+      this.cells[x][y].status = CellStatus.show;
+      this.cells[x][y].nearbyMines = this.calculateNearbyMines({ x, y });
+    }
   }
   reset() {
     this.cells = this.initBoard(SIZE.EASY);
@@ -64,8 +83,7 @@ export class Game implements IPropsGame {
       allMines.filter(
         (cell) =>
           !cell.isMine &&
-          (cell.status === CellStatus.show ||
-            cell.status === CellStatus.flag)
+          (cell.status === CellStatus.show || cell.status === CellStatus.flag)
       ).length +
         allMines.filter(
           (cell) => cell.isMine && cell.status === CellStatus.hide
@@ -81,7 +99,26 @@ export class Game implements IPropsGame {
     }
     return _gameStatus;
   }
-  // TODO: Reveal one, first phase => show 0, second phase => calculate nearbys
+  calculateNearbyMines(point: IPropsPoint) {
+    const { x, y } = point;
+    const nearbyMineCount = [
+      // upper row
+      this.cells?.[x - 1]?.[y - 1],
+      this.cells?.[x]?.[y - 1],
+      this.cells?.[x + 1]?.[y - 1],
+      // same row
+      this.cells?.[x - 1]?.[y],
+      this.cells?.[x + 1]?.[y],
+      // down row
+      this.cells?.[x - 1]?.[y + 1],
+      this.cells?.[x]?.[y + 1],
+      this.cells?.[x + 1]?.[y + 1],
+    ]
+      // TODO: remove outbound warning
+      .map((cell: IPropsCell) => cell?.isMine)
+      .filter(Boolean).length;
+    return nearbyMineCount;
+  }
   // TODO: Reveal recursivly
   // TODO: flag & flag back
 }
@@ -93,5 +130,10 @@ export class Cell implements IPropsCell {
 
   constructor() {
     makeAutoObservable(this);
+  }
+
+  toggleFlag() {
+    this.status =
+      this.status === CellStatus.hide ? CellStatus.flag : CellStatus.hide;
   }
 }
