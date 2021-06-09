@@ -2,7 +2,7 @@ import React from "react";
 import { observer } from "mobx-react";
 import { IPropsCell, IPropsGame, CellStatus, GameStatus } from "./interface";
 import "./App.css";
-import { SIZE } from "./models";
+import { SIZE } from "./interface";
 
 const App = observer(({ gameState }: { gameState: IPropsGame }) => {
   const MapGameStatus = (gameStatus: GameStatus) => {
@@ -58,7 +58,11 @@ const RestartBtn = ({ gameState }: { gameState: IPropsGame }) => {
 
 const Board = ({ children }: { children: React.ReactNode }) => {
   return (
-    <div className={`board grid grid-cols-${SIZE.EASY} grid-rows-${SIZE.EASY} gap-0`}>{children}</div>
+    <div
+      className={`board grid grid-cols-${SIZE.EASY} grid-rows-${SIZE.EASY} gap-0`}
+    >
+      {children}
+    </div>
   );
 };
 
@@ -89,12 +93,8 @@ const Cell = ({
           ? "cursor-pointer"
           : "cursor-default"
       }`}
-      onContextMenu={(e) => {
-        handleClickEvent(e);
-      }}
-      onClick={(e) => {
-        handleClickEvent(e);
-      }}
+      onContextMenu={handleClickEvent}
+      onClick={handleClickEvent}
     >
       {status === CellStatus.hide
         ? ""

@@ -1,5 +1,4 @@
-import { IPropsPoint } from "./interface";
-import { SIZE, DIFFICULTY } from "./models";
+import { SIZE, DIFFICULTY, IPropsPoint } from "./interface";
 
 export const generateMine = (
   size: SIZE,

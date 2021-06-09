@@ -5,7 +5,8 @@ import App from "./App";
 import reportWebVitals from "./reportWebVitals";
 
 // Data
-import { Game, SIZE, DIFFICULTY } from "./models";
+import { Game } from "./models";
+import { SIZE, DIFFICULTY } from "./interface";
 const GameState = new Game(SIZE.EASY, DIFFICULTY.EASY);
 
 ReactDOM.render(

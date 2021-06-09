@@ -9,6 +9,18 @@ export enum GameStatus {
   LOST,
   WON,
 }
+
+export enum DIFFICULTY {
+  EASY = 0.2,
+  MEDIUM = 0.3,
+  HARD = 0.4,
+}
+
+export enum SIZE {
+  EASY = 6,
+  MEDIUM = 10,
+  HARD = 20,
+}
 export interface IPropsGame {
   // mine
   cells: Array<Array<IPropsCell>>;
@@ -17,7 +29,7 @@ export interface IPropsGame {
   revealMine: (point: IPropsPoint) => void;
   setCellFlag: (point: IPropsPoint) => void;
   calculateNearbyMines: (point: IPropsPoint) => number;
-  gameStatus: GameStatus
+  gameStatus: GameStatus;
   reset: Function;
 }
 export interface IPropsCell {

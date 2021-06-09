@@ -5,20 +5,10 @@ import {
   IPropsPoint,
   CellStatus,
   GameStatus,
+  SIZE,
+  DIFFICULTY,
 } from "./interface";
 import { generateMine } from "./utils";
-
-export enum DIFFICULTY {
-  EASY = 0.2,
-  MEDIUM = 0.3,
-  HARD = 0.4,
-}
-
-export enum SIZE {
-  EASY = 6,
-  MEDIUM = 10,
-  HARD = 20,
-}
 
 export class Game implements IPropsGame {
   cells: Array<Array<Cell>>;
@@ -106,22 +96,19 @@ export class Game implements IPropsGame {
   }
   getNearbyCells(point: IPropsPoint) {
     const { x, y } = point;
-    return (
-      [
-        // upper row
-        this.cells?.[x - 1]?.[y - 1],
-        this.cells?.[x]?.[y - 1],
-        this.cells?.[x + 1]?.[y - 1],
-        // same row
-        this.cells?.[x - 1]?.[y],
-        this.cells?.[x + 1]?.[y],
-        // down row
-        this.cells?.[x - 1]?.[y + 1],
-        this.cells?.[x]?.[y + 1],
-        this.cells?.[x + 1]?.[y + 1],
-      ]
-        .filter((Cell: Cell | undefined) => Cell !== undefined)
-    );
+    return [
+      // upper row
+      this.cells?.[x - 1]?.[y - 1],
+      this.cells?.[x]?.[y - 1],
+      this.cells?.[x + 1]?.[y - 1],
+      // same row
+      this.cells?.[x - 1]?.[y],
+      this.cells?.[x + 1]?.[y],
+      // down row
+      this.cells?.[x - 1]?.[y + 1],
+      this.cells?.[x]?.[y + 1],
+      this.cells?.[x + 1]?.[y + 1],
+    ].filter((Cell: Cell | undefined) => Cell !== undefined);
   }
   // TODO: Reveal recursivly
   revealMineRecusivly(point: IPropsPoint) {
